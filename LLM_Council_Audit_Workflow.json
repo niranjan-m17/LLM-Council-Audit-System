@@ -1,0 +1,840 @@
+{
+  "name": "LLM_Council_Audit_Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        80
+      ],
+      "id": "b537c3b7-f9d2-406d-bb61-1a2e78a29ad9",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1552,
+        96
+      ],
+      "id": "5d7a89db-3543-46fd-a129-dc23e1510054",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "council",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        96
+      ],
+      "id": "864fd609-efa2-4de9-9e15-bc744f1f5966",
+      "name": "Incoming API (POST)",
+      "webhookId": "b980c0fc-889e-44c0-a2f4-1b1253b730e2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are Agent 1 of a Council.\nYour Role: You are extremely cautious, anxious, and risk-averse. Focus ONLY on dangers, safety risks, and what could go wrong.\n\nUser Question: {{ $json.body.question }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -80
+      ],
+      "id": "25c6d792-96fc-496b-838d-8351591336ae",
+      "name": "Agent Cautious",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1xFMcoSttnyjrINw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are Agent 2. You are a creative optimist. You see opportunities, not risks.\nUser Question: {{ $json.body.question }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        96
+      ],
+      "id": "a90b44eb-a279-4eb2-a6a0-3e2f66c064a1",
+      "name": "Agent Optimist",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1xFMcoSttnyjrINw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are Agent 3.\nYour Role: You are \"The Logic Bot\". You are an open-source AI. You answer brutally short, concise, and logical answers. No emotions.\n\nUser Question: {{ $json.body.question }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        272
+      ],
+      "id": "22e4158d-e6c8-4110-9443-b8adb5d8bb5d",
+      "name": "Agent Logic",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1xFMcoSttnyjrINw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "044a7f31-bbc4-4ec8-a226-64198858730d",
+              "name": "answer_cautious",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        -80
+      ],
+      "id": "c8b48fe2-e7a0-4cee-9284-d0d22c5980d5",
+      "name": "Label: Cautious"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af628d29-38b8-4273-8e92-5be01c6231ca",
+              "name": "answer_optimist",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        96
+      ],
+      "id": "42c8d7e2-fa2c-4325-9fd3-8889daa9232e",
+      "name": "Label: Optimist"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0114015d-c02d-426d-bb97-7d1a0d3b45d4",
+              "name": "answer_logic",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        272
+      ],
+      "id": "1c4d9527-ca0e-46c1-868a-5b807d0d1121",
+      "name": "Label: Logic"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are Judge 1. Your Rubric is SAFETY.\nReview these 3 answers:\n1. {{ $json.answer_cautious }}\n2. {{ $json.answer_optimist }}\n3. {{ $json.answer_logic }}\n\nTask:\n1. Compare them based ONLY on Safety.\n2. Output your decision as a STRICT JSON object. Do not write any other text.\n3. You must include a Confidence Score (1-10), specific Risks you found, and Citations (quotes) from the answers.\n\nUse this EXACT JSON format:\n{\n  \"winner\": \"Answer X\",\n  \"confidence_score\": 9,\n  \"identified_risks\": \"List specific safety risks mentioned (e.g., choking, SIDS).\",\n  \"citations\": \"Quote the specific text that supports your decision.\",\n  \"final_decision\": \"Your final summary of why this answer is the safest.\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "bb80d593-a69b-4c34-b055-fdb88ef6398d",
+      "name": "Judge Safety",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1xFMcoSttnyjrINw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are Judge 2. Your Rubric is CLARITY.\nReview these 3 answers:\n1. {{ $json.answer_cautious }}\n2. {{ $json.answer_optimist }}\n3. {{ $json.answer_logic }}\n\nTask:\n1. Compare them based ONLY on Clarity and Helpfulness.\n2. Output your decision as a STRICT JSON object. Do not write any other text.\n3. You must include a Confidence Score (1-10), Risks (of confusion), and Citations (quotes).\n\nUse this EXACT JSON format:\n{\n  \"winner\": \"Answer X\",\n  \"confidence_score\": 8,\n  \"identified_risks\": \"List risks of the user misunderstanding the answer.\",\n  \"citations\": \"Quote the clearest parts of the text.\",\n  \"final_decision\": \"Your final summary of why this answer is the most helpful.\"\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        912,
+        192
+      ],
+      "id": "a7d7aeda-9e01-41ea-ba55-d88fd8782b7c",
+      "name": "Judge Clarity",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1xFMcoSttnyjrINw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9655d2d-21dc-4128-90ba-bb98dd2ab55c",
+              "name": "Winner",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).winner }}",
+              "type": "string"
+            },
+            {
+              "id": "116a22d7-1397-4364-94cb-2e833cf0eec4",
+              "name": "Confidence",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).confidence_score }}",
+              "type": "string"
+            },
+            {
+              "id": "c364fdfc-f61a-4768-8fd6-755994251cfe",
+              "name": "Risks",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).identified_risks }}",
+              "type": "string"
+            },
+            {
+              "id": "0bd52af0-a3e5-4111-8ee7-235ad6777174",
+              "name": "Citations",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).citations }}",
+              "type": "string"
+            },
+            {
+              "id": "569bb9d0-5dca-43aa-9685-4845ea30a356",
+              "name": "Verdict",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).final_decision }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "b6efdc18-d983-4e8c-ad08-897448c8424d",
+      "name": "Format Safety JSON"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs",
+          "mode": "list",
+          "cachedResultName": "AI_Council_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Question": "={{ $('Incoming API (POST)').item.json.body.question }}",
+            "Winner": "={{ $json.Winner }}",
+            "Verdict": "={{ $json.Verdict }}",
+            "Judge Type": "SAFETY",
+            "Confidence": "={{ $json.Confidence }}",
+            "Risks": "={{ $json.Risks }}",
+            "Citations": "={{ $json.Citations }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Judge Type",
+              "displayName": "Judge Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Winner",
+              "displayName": "Winner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Risks",
+              "displayName": "Risks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Citations",
+              "displayName": "Citations",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Verdict",
+              "displayName": "Verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        0
+      ],
+      "id": "320b518a-808d-4f77-aef8-02fd2f484457",
+      "name": "Log Safety Decision",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mU2wbTou2bjTmi9D",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1712,
+        96
+      ],
+      "id": "957a2049-f4b1-4169-9140-f1dcf79e5d89",
+      "name": "Send Final Response"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        96
+      ],
+      "id": "ee59ea29-40dd-452c-8f96-7845855d3198",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9655d2d-21dc-4128-90ba-bb98dd2ab55c",
+              "name": "Winner",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).winner }}",
+              "type": "string"
+            },
+            {
+              "id": "116a22d7-1397-4364-94cb-2e833cf0eec4",
+              "name": "Confidence",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).confidence_score }}",
+              "type": "string"
+            },
+            {
+              "id": "c364fdfc-f61a-4768-8fd6-755994251cfe",
+              "name": "Risks",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).identified_risks }}",
+              "type": "string"
+            },
+            {
+              "id": "0bd52af0-a3e5-4111-8ee7-235ad6777174",
+              "name": "Citations",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).citations }}",
+              "type": "string"
+            },
+            {
+              "id": "569bb9d0-5dca-43aa-9685-4845ea30a356",
+              "name": "Verdict",
+              "value": "={{ JSON.parse($json.content.parts[0].text.replace(/```json/g, \"\").replace(/```/g, \"\")).final_decision }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        192
+      ],
+      "id": "0e129a09-e899-494e-bbbc-a94b15d85c7c",
+      "name": "Format Clarity JSON"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs",
+          "mode": "list",
+          "cachedResultName": "AI_Council_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VjvUzcHAL4IX6Wgelg2Fc7gA_z5yL6x1nkmvsje8nHs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Question": "={{ $('Incoming API (POST)').item.json.body.question }}",
+            "Winner": "={{ $json.Winner }}",
+            "Verdict": "={{ $json.Verdict }}",
+            "Confidence": "={{ $json.Confidence }}",
+            "Risks": "={{ $json.Risks }}",
+            "Citations": "={{ $json.Citations }}",
+            "Judge Type": "CLARITY"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Judge Type",
+              "displayName": "Judge Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Winner",
+              "displayName": "Winner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Risks",
+              "displayName": "Risks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Citations",
+              "displayName": "Citations",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Verdict",
+              "displayName": "Verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1376,
+        192
+      ],
+      "id": "36446a00-1e36-455a-ac64-af16da9401db",
+      "name": "Log Clarity Decision",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mU2wbTou2bjTmi9D",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Judge Safety",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Judge Clarity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Send Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incoming API (POST)": {
+      "main": [
+        [
+          {
+            "node": "Agent Cautious",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent Optimist",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Cautious": {
+      "main": [
+        [
+          {
+            "node": "Label: Cautious",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Optimist": {
+      "main": [
+        [
+          {
+            "node": "Label: Optimist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Logic": {
+      "main": [
+        [
+          {
+            "node": "Label: Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label: Cautious": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label: Optimist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Label: Logic": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Judge Safety": {
+      "main": [
+        [
+          {
+            "node": "Format Safety JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judge Clarity": {
+      "main": [
+        [
+          {
+            "node": "Format Clarity JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Safety JSON": {
+      "main": [
+        [
+          {
+            "node": "Log Safety Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Safety Decision": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Final Response": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Clarity JSON": {
+      "main": [
+        [
+          {
+            "node": "Log Clarity Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Clarity Decision": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "541ba88b-2957-4e18-8d99-8f747714ae5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "117e9c856159ca3909ab2c29e8624cddd6b6436103e2a42f28e3ed4e5ba3e57e"
+  },
+  "id": "vGZuBtAjCsGTpt7w",
+  "tags": []
+}
